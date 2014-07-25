@@ -12,14 +12,17 @@
 class UploadHelper extends AppHelper {
 
 
-	public function view ($model, $id, $edit=false) {
+	public function view ($model, $id, $edit=false, $options = array()) {
 		$results = $this->listing ($model, $id);
 				
 		$directory = $results['directory'];
 		$baseUrl = $results['baseUrl'];
 		$files = $results['files'];
 
-		$str = "<dt>" . __("Arquivos") . "</dt>\n<dd>";
+        if(!($label = Hash::get($options, 'label')))
+            $label = __("Arquivos");
+
+		$str = "<dt>" . $label . "</dt>\n<dd>";
 		$count = 0;
 		$webroot = Router::url("/") . "ajax_multi_upload";
 
@@ -71,7 +74,7 @@ class UploadHelper extends AppHelper {
 		$dir = Configure::read('AMU.directory');
 		if (strlen($dir) < 1) $dir = "files";
 
-		$str = $this->view ($model, $id, true);
+		$str = $this->view ($model, $id, true, $options);
 		$webroot = Router::url("/") . "ajax_multi_upload";
 		// Replace / with underscores for Ajax controller
 		$lastDir = str_replace ("/", "___", 
