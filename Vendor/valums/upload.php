@@ -4,16 +4,18 @@
  * Handle file uploads via XMLHttpRequest
  */
 class qqUploadedFileXhr {
+
     /**
      * Save the file to the specified path
      * @return boolean TRUE on success
      */
     function save($path) {    
-        $input = fopen("php://input", "r");
-        $temp = tmpfile();
+        $input = fopen("php://input", "rb");
+        //$temp = tmpfile(); //XXX Fixed bug in the production's enviroment
+        $temp = fopen("php://temp", "w+b");
         $realSize = stream_copy_to_stream($input, $temp);
         fclose($input);
-        
+
         if ($realSize != $this->getSize()){            
             return false;
         }
@@ -125,8 +127,8 @@ class qqFileUploader {
         }
         
         $pathinfo = pathinfo($this->file->getName());
-        $filename = $pathinfo['filename'];
-        //$filename = md5(uniqid());
+        //$filename = $pathinfo['filename'];
+        $filename = md5(uniqid());
         $ext = $pathinfo['extension'];
 
         if($this->allowedExtensions && !in_array(strtolower($ext), $this->allowedExtensions)){
@@ -140,9 +142,12 @@ class qqFileUploader {
                 $filename .= rand(10, 99);
             }
         }
+
+        $final_filename = $uploadDirectory . $filename . '.' . $ext;
+        $final_filename2 = Router::url('/', TRUE) . preg_replace('/^.*?(files.+)$/', '$1', $uploadDirectory) . $filename . '.' . $ext;
         
-        if ($this->file->save($uploadDirectory . $filename . '.' . $ext)){
-            return array('success'=>true);
+        if ($this->file->save($final_filename)){
+            return array('success'=>true, 'filename' => "$filename.$ext", 'full_filename' => $final_filename2);
         } else {
             return array('error'=> 'Could not save uploaded file.' .
                 'The upload was cancelled, or server error encountered');

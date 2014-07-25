@@ -9,7 +9,6 @@
  * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  *                and/or GNU GPL v3 (http://www.gnu.org/copyleft/gpl.html)
  */
- 
 class UploadHelper extends AppHelper {
 
 
@@ -20,9 +19,10 @@ class UploadHelper extends AppHelper {
 		$baseUrl = $results['baseUrl'];
 		$files = $results['files'];
 
-		$str = "<dt>" . __("Files") . "</dt>\n<dd>";
+		$str = "<dt>" . __("Arquivos") . "</dt>\n<dd>";
 		$count = 0;
 		$webroot = Router::url("/") . "ajax_multi_upload";
+
 		foreach ($files as $file) {
 			$type = pathinfo($file, PATHINFO_EXTENSION);
 			$filesize = $this->format_bytes (filesize ($file));
@@ -34,11 +34,21 @@ class UploadHelper extends AppHelper {
 				$str .= "<a href='$delUrl'><img src='" . Router::url("/") . 
 					"ajax_multi_upload/img/delete.png' alt='Delete' /></a> ";
 			}
-			$str .= "<img src='" . Router::url("/") . "ajax_multi_upload/img/fileicons/$type.png' /> ";
+			
+            /*
+            $str .= "<img src='" . Router::url("/") . "ajax_multi_upload/img/fileicons/$type.png' /> ";
 			$str .= "<a href='$url'>" . $f . "</a> ($filesize)";
+			$str .= "<a href='$url'>" . $thumb . "</a> ($filesize)";
+            */
+
+            $url2 = str_replace('/files/', '/app/webroot/files/', $url);
+
+            $thumb = '<img src="' . (Router::url('/') . "thumbs.php?image=$url2&width=64height=64&cropratio=1:1") . '" alt="'.$f.'" />';
+			$str .= "<a href='$url'>" . $thumb . "</a>";
 			$str .= "<br />\n";
 		}
 		$str .= "</dd>\n"; 
+        $str = '<div class="uploaded-list">'. $str . '</div>';
 		return $str;
 	}
 
@@ -53,7 +63,11 @@ class UploadHelper extends AppHelper {
 		return array("baseUrl" => $baseUrl, "directory" => $directory, "files" => $files);
 	}
 
-	public function edit ($model, $id) {
+	public function edit ($model, $id, $options = array()) {
+
+        $is_multiple = Hash::get($options, 'multiple');
+        if(empty($is_multiple)) $is_multiple = 'false';
+
 		$dir = Configure::read('AMU.directory');
 		if (strlen($dir) < 1) $dir = "files";
 
@@ -104,7 +118,12 @@ class UploadHelper extends AppHelper {
 							window['uploader'+i] = new qq.FileUploader({
 								element: amuCollection[i],
 								action: '$webroot/uploads/upload/' + action + '/',
-								debug: true
+								debug: true,
+                                multiple : $is_multiple,
+                                onComplete: function(id, fileName, responseJSON){
+                                    console.log(responseJSON);
+                                    callback_upload(responseJSON);
+                                }
 							});
 						}
 					}

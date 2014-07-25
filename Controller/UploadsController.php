@@ -13,7 +13,6 @@
 class UploadsController extends AjaxMultiUploadAppController {
 
 	public $name = "Upload";
-	public $uses = null;
 
 	// list of valid extensions, ex. array("jpeg", "xml", "bmp")
 	public $allowedExtensions = array();
@@ -43,6 +42,7 @@ class UploadsController extends AjaxMultiUploadAppController {
 		$uploader = new qqFileUploader($this->allowedExtensions, 
 			$sizeLimit);
 		$result = $uploader->handleUpload($dir);
+
 		$this->set("result", htmlspecialchars(json_encode($result), ENT_NOQUOTES));
 	}
 
